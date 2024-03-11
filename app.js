@@ -1,6 +1,8 @@
 require('dotenv').config();
+require('module-alias/register');
 const express = require('express');
 const cors = require('cors');
+const { errorHandler } = require('@helpers');
 
 // App init
 const app = express();
@@ -13,22 +15,10 @@ app.use([
 ]);
 
 // Routes
-app.get('/health-check', (req, res) => {
-
-    res.status(200).json({ ok: true });
-
-});
+app.use('/api/v1', require('@routes'));
 
 // Default error handler
-app.use((err, req, res, next) => {
-
-    if (!res.headersSent) {
-
-        res.status(500).json({ message: 'Internal Sever Error ' });
-
-    };
-
-});
+app.use(errorHandler);
 
 // Server port
 const port = process.env.PORT || 3000;
