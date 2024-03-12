@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const path = require('path');
 const { ACCEPT, AUTHORIZATION, MAX_PAGE_RESULTS, VIMEO_API_BASE_URL } = require('@constants');
-const { mergeArrays, saveJsonFile } = require('@utils');
+const { mergeArrays, saveFileLocally } = require('@utils');
 
 const getVideosIdsByFolder = async (req, res) => {
 
@@ -9,7 +9,7 @@ const getVideosIdsByFolder = async (req, res) => {
 
     try {
 
-        const { id } = req.params;
+        const { id } = req.params; // CC for Claudio: https://vimeo.com/user/84334492/folder/10499935
 
         const query = new URLSearchParams({
             per_page: MAX_PAGE_RESULTS,
@@ -58,7 +58,7 @@ const getVideosIdsByFolder = async (req, res) => {
 
         const folderPath = path.join(__dirname, '../', 'downloads');
 
-        saveJsonFile(fileName, folderPath, jsonVideos);
+        saveFileLocally(fileName, folderPath, jsonVideos);
 
         res.status(200).json({ success: true });
 

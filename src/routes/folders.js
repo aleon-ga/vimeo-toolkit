@@ -1,6 +1,5 @@
 const router = require('express')?.Router();
-const { foldersControllers } = require('@controllers');
-const { getVideosIdsByFolder } = foldersControllers;
+const { getVideosIdsByFolder } = require('@controllers')?.foldersControllers;
 
 router.get('/:id/videos', getVideosIdsByFolder);
 

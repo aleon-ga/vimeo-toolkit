@@ -24,6 +24,7 @@
     "@controllers": "src/controllers",
     "@helpers": "src/helpers",
     "@routes": "src/routes",
+    "@services": "src/services",
     "@utils": "src/utils"
   }
 }

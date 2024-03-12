@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const saveJsonFile = (fileName, folderPath, json) => {
+const saveFileLocally = (fileName, folderPath, json) => {
 
     // Create the directory if it does not already exist at the provided path.
     if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
@@ -18,4 +18,4 @@ const saveJsonFile = (fileName, folderPath, json) => {
 
 };
 
-module.exports = saveJsonFile;
+module.exports = saveFileLocally;

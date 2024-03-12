@@ -1,4 +1,9 @@
+const csvDataFormatter = require('./csvDataFormatter');
 const mergeArrays = require('./mergeArrays');
-const saveJsonFile = require('./saveJsonFile');
+const saveFileLocally = require('./saveFileLocally');
 
-module.exports = { mergeArrays, saveJsonFile };
+module.exports = {
+    csvDataFormatter,
+    mergeArrays, 
+    saveFileLocally 
+};
