@@ -1,9 +1,9 @@
 const path = require('path');
-const { showcaseEmbeddings } = require('@helpers');
-const { getAllShowcases } = require('@services')?.showcasesServices;
+const { extractShowcaseId, showcaseEmbeddings } = require('@helpers');
+const { editShowcase, getAllShowcases, getShowcaseById } = require('@services')?.showcasesServices;
 const { csvDataFormatter, saveFileLocally } = require('@utils');
 
-const generateShowcaseCsv = async (req, res) => {
+const generateShowcasesCsv = async (req, res) => {
 
     const data = [];
 
@@ -31,7 +31,7 @@ const generateShowcaseCsv = async (req, res) => {
 
                 for (const { name, uri } of showcases) {
 
-                    const id = uri.split('/')[uri.split('/').length - 1];
+                    const id = extractShowcaseId(uri);
 
                     const { fixedEmbed, responsiveEmbed } = showcaseEmbeddings(id);
 
@@ -63,4 +63,92 @@ const generateShowcaseCsv = async (req, res) => {
 
 }; //!GENERATESHOWCASECSV-END
 
-module.exports = { generateShowcaseCsv };
+const checkShowcasesPrivacy = async (req, res) => {
+
+    const updates = [], failures = [];
+
+    try {
+
+        const { body } = req;
+
+        for (const term in body) {
+
+            const universities = body[term];
+
+            for (const university of universities) {
+
+                const searchQuery = `${university}-${term}`;
+
+                const showcases = await getAllShowcases(searchQuery, 'uri'); // fields => 'uri'.
+
+                if (!showcases.length) {
+
+                    console.log(`\nNo showcases were found for ${searchQuery}.`);
+
+                    continue;
+
+                };
+
+                for (const { uri } of showcases) {
+
+                    const id = extractShowcaseId(uri);
+
+                    const showcase = await getShowcaseById(id, 'privacy'); // fields => 'privacy'.
+
+                    if (!showcase.ok) {
+
+                        const { ok, ...errorInfo } = showcase;
+
+                        failures.push(errorInfo);
+
+                        continue;
+
+                    };
+
+                    const { privacy } = showcase.data;
+
+                    if (privacy.view === 'embed_only') {
+
+                        console.log(`\nShowcase ${id} privacy settings are correct.`);
+
+                        continue;
+
+                    };
+
+                    console.log(`\nShowcase ${id} requires updating privacy settings.`);
+
+                    const showcasePrivacyUpdate = await editShowcase(id, { privacy: 'embed_only' });
+
+                    if (!showcasePrivacyUpdate.ok) {
+
+                        const { ok, ...errorInfo } = showcasePrivacyUpdate;
+
+                        failures.push(errorInfo);
+
+                        continue;
+
+                    };
+
+                    console.log(`\nShowcase ${id} privacy settings updated successfully.`);
+
+                    updates.push(id);
+
+                };
+
+            };
+
+        };
+
+        res.status(200).json({ updates, failures });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(error.cause || 500).json({ message: error.message });
+
+    };
+
+}; //!CHECKSHOWCASESPRIVACY
+
+module.exports = { generateShowcasesCsv, checkShowcasesPrivacy };

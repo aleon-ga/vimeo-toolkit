@@ -5,7 +5,7 @@ const videosRoutes = require('./videos');
 
 router.use('/folders', foldersRoutes);
 
-router.use('/showcase', showcasesRoutes);
+router.use('/showcases', showcasesRoutes);
 
 router.use('/videos', videosRoutes);
 

@@ -1,6 +1,8 @@
 const router = require('express')?.Router();
-const { generateShowcaseCsv } = require('@controllers')?.showcasesControllers;
+const { checkShowcasesPrivacy, generateShowcasesCsv } = require('@controllers')?.showcasesControllers;
 
-router.post('/generate-csv', generateShowcaseCsv);
+router.post('/generate-csv', generateShowcasesCsv);
+
+router.post('/check-privacy', checkShowcasesPrivacy);
 
 module.exports = router;
