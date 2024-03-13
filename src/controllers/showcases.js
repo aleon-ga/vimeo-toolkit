@@ -49,7 +49,7 @@ const generateShowcasesCsv = async (req, res) => {
 
         const folderPath = path.join(__dirname, '../', 'downloads');
 
-        saveFileLocally(fileName, folderPath, csvData);
+        await saveFileLocally(fileName, folderPath, csvData);
 
         res.status(200).json({ success: true });
 

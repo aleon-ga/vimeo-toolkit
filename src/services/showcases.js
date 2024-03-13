@@ -98,12 +98,14 @@ const handleError = (error) => {
 
     console.error(error.message);
 
+    const statusCode = (!isNaN(error.cause)) ? error.cause : 500;
+
     return {
         ok: false,
-        statusCode: error.cause || 500,
+        statusCode,
         message: error.message
     };
 
-}; //!HANDLE-ERROR
+}; //!HANDLEERROR-END
 
 module.exports = { getAllShowcases, getShowcaseById, editShowcase };
