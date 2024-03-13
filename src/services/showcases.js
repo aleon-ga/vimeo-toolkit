@@ -85,7 +85,15 @@ const getShowcaseById = async (id, fields = '') => {
 
         if (!response.ok) {
 
-            throw new Error(`Failed to fetch the showcase ${id}.`, { cause: response.status });
+            /**
+             * Represents the error message returned by the Vimeo API.
+             * @type {string}
+             */
+            const { error } = await response.json();
+
+            throw new Error('Failed to fetch the showcase.', {
+                cause: { statusCode: response.status, error, showcase: id }
+            });
 
         };
 
@@ -93,7 +101,20 @@ const getShowcaseById = async (id, fields = '') => {
 
         return { ok: true, data };
 
-    } catch (error) { handleError(error) };
+    } catch (error) {
+
+        console.error(`\n${error.message}`);
+
+        const statusCode = error.cause?.statusCode ?? 500;
+
+        return {
+            ok: false,
+            statusCode,
+            message: error.message,
+            ...error.cause
+        };
+
+    };
 
 }; //!GETSHOWCASEBYID-END
 
@@ -117,28 +138,35 @@ const editShowcase = async (id, data = {}) => {
 
         if (!response.ok) {
 
-            throw new Error(`Failed to edit the showcase ${id}.`, { cause: response.status });
+            /**
+             * Represents the error message returned by the Vimeo API.
+             * @type {string}
+             */
+            const { error } = await response.json();
+
+            throw new Error(`Failed to edit the showcase.`, {
+                cause: { statusCode: response.status, error, showcase: id }
+            });
 
         };
 
         return { ok: true };
 
-    } catch (error) { handleError(error) };
+    } catch (error) {
 
-}; //!EDITSHOWCASE-END
+        console.error(`\n${error.message}`);
 
-const handleError = (error) => {
+        const statusCode = error.cause?.statusCode ?? 500;
 
-    console.error(error.message);
+        return {
+            ok: false,
+            statusCode,
+            message: error.message,
+            ...error.cause
+        };
 
-    const statusCode = (!isNaN(error.cause)) ? error.cause : 500;
-
-    return {
-        ok: false,
-        statusCode,
-        message: error.message
     };
 
-}; //!HANDLEERROR-END
+}; //!EDITSHOWCASE-END
 
 module.exports = { getAllShowcases, getShowcaseById, editShowcase };

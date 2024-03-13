@@ -86,7 +86,7 @@ const generateShowcasesCsv = async (req, res) => {
 
         console.error('\n', error, '\n');
 
-        const statusCode = error.statusCode ?? error.cause.statusCode ?? 500;
+        const statusCode = error.statusCode ?? error.cause?.statusCode ?? 500;
 
         res.status(statusCode).json({
             message: error.message,
@@ -99,7 +99,7 @@ const generateShowcasesCsv = async (req, res) => {
 
 const checkShowcasesPrivacy = async (req, res) => {
 
-    const updates = [], failures = [];
+    const updates = [], logs = [];
 
     try {
 
@@ -107,23 +107,29 @@ const checkShowcasesPrivacy = async (req, res) => {
 
         for (const term in body) {
 
+            console.log(`\nIterating over term ${term}...`);
+
             const universities = body[term];
 
             for (const university of universities) {
 
+                console.log(`\nIterating over university ${university}...`);
+
                 const searchQuery = `${university}-${term}`;
 
-                const showcases = await getAllShowcases(searchQuery, 'uri'); // fields => 'uri'.
+                const showcases = await getAllShowcases({ query: searchQuery, fields: 'uri' });
 
-                if (!showcases.length) {
+                if (!showcases.ok) {
 
-                    console.log(`\nNo showcases were found for ${searchQuery}.`);
+                    const { ok, ...info } = showcases;
+
+                    logs.push({ term, university, ...info });
 
                     continue;
 
                 };
 
-                for (const { uri } of showcases) {
+                for (const { uri } of showcases.data) {
 
                     const id = extractShowcaseId(uri);
 
@@ -131,9 +137,9 @@ const checkShowcasesPrivacy = async (req, res) => {
 
                     if (!showcase.ok) {
 
-                        const { ok, ...errorInfo } = showcase;
+                        const { ok, ...info } = showcase;
 
-                        failures.push(errorInfo);
+                        logs.push({ term, university, ...info });
 
                         continue;
 
@@ -149,15 +155,15 @@ const checkShowcasesPrivacy = async (req, res) => {
 
                     };
 
-                    console.log(`\nShowcase ${id} requires updating privacy settings.`);
+                    console.log(`\nShowcase ${id} requires updating its privacy settings.`);
 
                     const showcasePrivacyUpdate = await editShowcase(id, { privacy: 'embed_only' });
 
                     if (!showcasePrivacyUpdate.ok) {
 
-                        const { ok, ...errorInfo } = showcasePrivacyUpdate;
+                        const { ok, ...info } = showcasePrivacyUpdate;
 
-                        failures.push(errorInfo);
+                        logs.push({ term, university, ...info });
 
                         continue;
 
@@ -173,13 +179,22 @@ const checkShowcasesPrivacy = async (req, res) => {
 
         };
 
-        res.status(200).json({ updates, failures });
+        res.status(200).json({
+            message: "Verification of showcases' privacy settings completed successfully.",
+            updates,
+            logs
+        });
 
     } catch (error) {
 
-        console.error(error);
+        console.error('\n', error, '\n');
 
-        res.status(error.cause || 500).json({ message: error.message });
+        const statusCode = error.statusCode ?? error.cause?.statusCode ?? 500;
+
+        res.status(statusCode).json({
+            message: error.message,
+            logs
+        });
 
     };
 
