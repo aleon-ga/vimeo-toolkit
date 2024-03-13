@@ -24,7 +24,7 @@ const saveFileLocally = async (folderPath, fileName, data) => {
 
         await fs.promises.writeFile(filePath, data);
 
-        return { ok: true };
+        return { ok: true, filePath };
 
     } catch (error) {
 

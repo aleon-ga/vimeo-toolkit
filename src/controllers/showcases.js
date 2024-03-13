@@ -5,7 +5,7 @@ const { csvDataFormatter, saveFileLocally } = require('@utils');
 
 const generateShowcasesCsv = async (req, res) => {
 
-    const data = [];
+    const showcasesData = [], logs = [];
 
     try {
 
@@ -13,29 +13,35 @@ const generateShowcasesCsv = async (req, res) => {
 
         for (const term in body) {
 
+            console.log(`\nIterating over term ${term}...`);
+
             const universities = body[term];
 
             for (const university of universities) {
 
+                console.log(`\nIterating over university ${university}...`);
+
                 const searchQuery = `${university}-${term}`;
 
-                const showcases = await getAllShowcases(searchQuery, fields);
+                const showcases = await getAllShowcases({ query: searchQuery, fields });
 
-                if (!showcases.length) {
+                if (!showcases.ok) {
 
-                    console.log(`\nNo showcases were found for ${searchQuery}.`);
+                    const { ok, ...info } = showcases;
+
+                    logs.push({ term, university, ...info });
 
                     continue;
 
                 };
 
-                for (const { name, uri } of showcases) {
+                for (const { name, uri } of showcases.data) {
 
                     const id = extractShowcaseId(uri);
 
                     const { fixedEmbed, responsiveEmbed } = showcaseEmbeddings(id);
 
-                    data.push({ id, name, fixedEmbed, responsiveEmbed });
+                    showcasesData.push({ id, name, fixedEmbed, responsiveEmbed });
 
                 };
 
@@ -43,21 +49,49 @@ const generateShowcasesCsv = async (req, res) => {
 
         };
 
-        const csvData = csvDataFormatter(data);
+        // The array is empty.
+        if (!showcasesData.length) {
+
+            throw new Error('Failed to retrieve any data from the showcases. CSV file generation cannot be completed.', {
+                cause: { statusCode: 400 }
+            });
+
+        };
+
+        const csvData = csvDataFormatter(showcasesData);
 
         const fileName = 'showcases.csv';
 
         const folderPath = path.join(__dirname, '../', 'downloads');
 
-        await saveFileLocally(fileName, folderPath, csvData);
+        const saveFileProcess = await saveFileLocally(folderPath, fileName, csvData);
 
-        res.status(200).json({ success: true });
+        if (!saveFileProcess.ok) {
+
+            const { ok, ...error } = saveFileProcess;
+
+            throw error;
+
+        };
+
+        const { filePath } = saveFileProcess;
+
+        res.status(200).json({
+            message: 'The CSV file has been successfully saved locally.',
+            filePath,
+            logs
+        });
 
     } catch (error) {
 
-        console.error(error);
+        console.error('\n', error, '\n');
 
-        res.status(error.cause || 500).json({ message: error.message });
+        const statusCode = error.statusCode ?? error.cause.statusCode ?? 500;
+
+        res.status(statusCode).json({
+            message: error.message,
+            logs
+        });
 
     };
 

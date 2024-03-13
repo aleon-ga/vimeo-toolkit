@@ -37,7 +37,7 @@ const getAllVideosInFolder = async (id, fields = '') => {
                  */
                 const { error } = await response.json();
 
-                throw new Error(`Failed to fetch all the videos.`, {
+                throw new Error(`Failed to fetch all videos.`, {
                     cause: { statusCode: response.status, error, folder: id }
                 });
 

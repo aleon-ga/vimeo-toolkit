@@ -29,7 +29,7 @@ const getAllTextTracks = async (id, fields) => {
 
         if (total === 0) {
 
-            throw new Error(`No text tracks were found.`, { cause: { statusCode: response.status } });
+            throw new Error(`No text tracks were found.`, { cause: { statusCode: 404 } });
 
         };
 
