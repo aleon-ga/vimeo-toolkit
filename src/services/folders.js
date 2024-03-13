@@ -31,7 +31,15 @@ const getAllVideosInFolder = async (id, fields = '') => {
 
             if (!response.ok) {
 
-                throw new Error(`Failed to fetch all the videos in folder ${id}.`, { cause: response.status });
+                /**
+                 * Represents the error message returned by the Vimeo API.
+                 * @type {string}
+                 */
+                const { error } = await response.json();
+
+                throw new Error(`Failed to fetch all the videos.`, {
+                    cause: { statusCode: response.status, error, folder: id }
+                });
 
             };
 
@@ -39,7 +47,9 @@ const getAllVideosInFolder = async (id, fields = '') => {
 
             if (total === 0) {
 
-                throw new Error(`No videos were found in folder ${id}.`, { cause: response.status });
+                throw new Error(`No videos were found.`, {
+                    cause: { statusCode: response.status, folder: id }
+                });
 
             };
 
@@ -63,12 +73,15 @@ const getAllVideosInFolder = async (id, fields = '') => {
 
     } catch (error) {
 
-        console.error(error.message);
+        console.error(`\n${error.message}`);
+
+        const statusCode = error.cause?.statusCode ?? 500;
 
         return {
             ok: false,
-            statusCode: error.cause || 500,
-            message: error.message
+            statusCode,
+            message: error.message,
+            ...error.cause
         };
 
     };

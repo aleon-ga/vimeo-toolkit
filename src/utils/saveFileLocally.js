@@ -13,7 +13,7 @@ const path = require('path');
  * - `error`: {string} - The error message, if `ok` is `false`.
  * - Additional properties may be present in the returned object if an error occurs during the operation.
  */
-const saveFileLocally = async (folderPath, fileName, file) => {
+const saveFileLocally = async (folderPath, fileName, data) => {
 
     try {
 
@@ -22,7 +22,7 @@ const saveFileLocally = async (folderPath, fileName, file) => {
 
         const filePath = path.join(folderPath, fileName);
 
-        await fs.promises.writeFile(filePath, file);
+        await fs.promises.writeFile(filePath, data);
 
         return { ok: true };
 

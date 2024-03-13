@@ -1,12 +1,10 @@
-const path = require('path');
 const { getAllVideosInFolder } = require('@services')?.foldersServices;
-const { saveFileLocally } = require('@utils');
 
 const getVideosIdsByFolder = async (req, res) => {
 
     try {
 
-        const { params: { id }, query: { generateJson } } = req; // CC folder for "Claudio": https://vimeo.com/me/folder/10499935.
+        const { id } = req.params; // CC folder for "Claudio": https://vimeo.com/me/folder/10499935.
 
         const folderVideos = await getAllVideosInFolder(id, 'uri');
 
@@ -14,29 +12,17 @@ const getVideosIdsByFolder = async (req, res) => {
 
             const { ok, ...error } = folderVideos;
 
-            throw error
+            throw error;
 
         };
 
-        const { data: videos } = folderVideos;
+        const { data } = folderVideos;
 
-        if (generateJson) {
-
-            const jsonStr = JSON.stringify({ videos });
-
-            const fileName = `folder_${id}.json`;
-
-            const folderPath = path.join(__dirname, '../', 'downloads');
-
-            await saveFileLocally(fileName, folderPath, jsonStr);
-
-        };
-
-        res.status(200).json({ videos });
+        res.status(200).json({ videos: data });
 
     } catch (error) {
 
-        const statusCode = (!isNaN(error.cause)) ? error.cause : 500;
+        const statusCode = error.statusCode ?? 500;
 
         res.status(statusCode).json({ message: error.message });
 

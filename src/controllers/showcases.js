@@ -23,7 +23,7 @@ const generateShowcasesCsv = async (req, res) => {
 
                 if (!showcases.length) {
 
-                    console.log(`No showcases were found for ${searchQuery}.`);
+                    console.log(`\nNo showcases were found for ${searchQuery}.`);
 
                     continue;
 

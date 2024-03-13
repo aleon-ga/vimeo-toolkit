@@ -21,7 +21,7 @@ const getAllTextTracks = async (id, fields) => {
              */
             const { error } = await response.json();
 
-            throw new Error(`Failed to retrieve all the text tracks.`, { cause: { statusCode: response.status, error } });
+            throw new Error(`Failed to fetch all the text tracks.`, { cause: { statusCode: response.status, error } });
 
         };
 
@@ -37,7 +37,7 @@ const getAllTextTracks = async (id, fields) => {
 
     } catch (error) {
 
-        console.error('\n' + error.message);
+        console.error(`\n${error.message}`);
 
         const statusCode = error.cause?.statusCode ?? 500;
 
