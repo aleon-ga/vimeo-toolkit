@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const { ACCEPT, AUTHORIZATION, MAX_PAGE_RESULTS, VIMEO_API_BASE_URL } = require('@constants');
-const { extractShowcaseId } = require('@helpers');
+// const { extractShowcaseId } = require('@helpers');
 const { mergeArrays } = require('@utils');
 
 /**
@@ -58,7 +58,8 @@ const getAllVideosInFolder = async (id, fields = '') => {
              * This operation utilizes the `extractShowcaseId` function to process each `uri` found within the `data` array.
              * @type {string[]} - An array of extracted showcase IDs.
              */
-            const ids = data.map(({ uri }) => extractShowcaseId(uri));
+            // const ids = data.map(({ uri }) => extractShowcaseId(uri));
+            const ids = data.map(({ uri }) => uri.split('/')[uri.split('/').length - 1]);
 
             videos.push(ids);
 

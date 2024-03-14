@@ -1,6 +1,55 @@
 const fetch = require('node-fetch');
 const { ACCEPT, AUTHORIZATION, MAX_PAGE_RESULTS, VIMEO_API_BASE_URL } = require('@constants');
 
+// VIDEOS - ESSENTIAL SERVICES
+const getVideo = async (id, fields = '') => {
+
+    try {
+
+        const queryParams = new URLSearchParams({ fields });
+        
+        const url = `${VIMEO_API_BASE_URL}/videos/${id}?${queryParams}`;
+
+        const options = { headers: { ...AUTHORIZATION, ...ACCEPT } };
+
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+
+            /**
+             * Represents the error message returned by the Vimeo API.
+             * @type {string}
+             */
+            const { error } = await response.json();
+
+            throw new Error(`Failed to fetch the video.`, {
+                cause: { statusCode: response.status, error, video: id }
+            });
+
+        };
+
+        const data = await response.json();
+
+        return { ok: true, data };
+
+    } catch (error) {
+
+        console.error(`\n${error.message}`);
+
+        const statusCode = error.cause?.statusCode ?? 500;
+
+        return {
+            ok: false,
+            statusCode,
+            message: error.message,
+            ...error.cause
+        };
+
+    };
+
+}; //!GETVIDEO-END
+
+// VIDEOS - TEXT TRACKS SERVICES
 const getAllTextTracks = async (id, fields) => {
 
     try {
@@ -52,4 +101,4 @@ const getAllTextTracks = async (id, fields) => {
 
 }; //!GETALLTEXTTRACKS-END
 
-module.exports = { getAllTextTracks };
+module.exports = { getAllTextTracks, getVideo };
