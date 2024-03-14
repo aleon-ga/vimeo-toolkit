@@ -64,21 +64,21 @@ const generateShowcasesCsv = async (req, res) => {
 
         const folderPath = path.join(__dirname, '../', 'downloads');
 
-        const saveFileProcess = await saveFileLocally(folderPath, fileName, csvData);
+        const csvSave = await saveFileLocally(folderPath, fileName, csvData);
 
-        if (!saveFileProcess.ok) {
+        if (!csvSave.ok) {
 
-            const { ok, ...error } = saveFileProcess;
+            const { ok, ...error } = csvSave;
 
             throw error;
 
         };
 
-        const { filePath } = saveFileProcess;
+        const file = csvSave.data;
 
         res.status(200).json({
             message: 'The CSV file has been successfully saved locally.',
-            filePath,
+            file,
             logs
         });
 

@@ -1,47 +1,87 @@
 const fs = require('fs');
 const path = require('path');
+const { pipeline } = require('stream');
+const { promisify } = require('util');
 
-/**
- * Saves a file locally to the specified folder path with the given file name.
- * @param {string} folderPath - The path of the folder where the file will be saved.
- * @param {string} fileName - The name of the file.
- * @param {Buffer | string} file - The content of the file to be saved.
- * @returns {Promise<Object>} - A promise that resolves to an object indicating the result of the operation:
- * - `ok`: {boolean} - Indicates whether the operation was successful.
- * - `statusCode`: {number} - The status code associated with the error, if `ok` is `false`.
- * - `message`: {string} - A message describing the outcome of the operation.
- * - `error`: {string} - The error message, if `ok` is `false`.
- * - Additional properties may be present in the returned object if an error occurs during the operation.
- */
-const saveFileLocally = async (folderPath, fileName, data) => {
+// Convert the `pipeline` to a promisified version.
+const asyncPipeline = promisify(pipeline);
+
+const saveFileLocally = async (folderPath, fileName, readerStream, totalSize = null) => {
 
     try {
 
         // Create the directory if it does not already exist at the provided path.
-        if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+        ensureFolderExists(folderPath);
 
         const filePath = path.join(folderPath, fileName);
 
-        await fs.promises.writeFile(filePath, data);
+        // Create a local writing stream.
+        const writeStream = fs.createWriteStream(filePath);
 
-        return { ok: true, filePath };
+        if (totalSize) {
+
+            trackDownloadProgress(readerStream, totalSize);
+
+        };
+
+        await asyncPipeline(readerStream, writeStream);
+
+        return {
+            ok: true,
+            data: { name: fileName, path: filePath }
+        };
 
     } catch (error) {
 
-        const message = 'Failed to save the file locally.';
-
-        console.error('\n' + message);
-
         return {
             ok: false,
-            statusCode: 500,
-            message,
-            error: error.message,
-            ...error
+            message: error.message
         };
 
     };
 
-};
+}; //!SAVEVIDEOLOCALLY-END
+
+const ensureFolderExists = (folderPath) => {
+
+    if (!fs.existsSync(folderPath)) {
+
+        fs.mkdirSync(folderPath, { recursive: true });
+
+    };
+
+}; //!ENSUREFOLDEREXISTS-END
+
+const trackDownloadProgress = (readerStream, totalSize) => {
+
+    /**
+     * Variable to track the progress of the download.
+     * @type {number}
+     */
+    let bytesReceived = 0;
+
+    /**
+     * Represents the last progress value printed to the console.
+     * @type {number}
+     */
+    let lastProgress = 0;
+
+    readerStream.on('data', (chunk) => {
+
+        bytesReceived += chunk.length;
+
+        const progress = Math.floor((bytesReceived / totalSize) * 100);
+
+        if (progress - lastProgress >= 10) {
+
+            console.log(`Download progress: ${progress} %`);
+
+            lastProgress = progress;
+
+        };
+
+    });
+
+}; //!TRACKDOWNLOADPROGRESS-END
 
 module.exports = saveFileLocally;

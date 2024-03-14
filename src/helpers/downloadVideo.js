@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const path = require('path');
 const { getVideo } = require('@services')?.videosServices;
-const { saveVideoLocally } = require('@utils');
+const { saveFileLocally } = require('@utils');
 
 const downloadVideo = async (id) => {
 
@@ -64,7 +64,7 @@ const downloadVideo = async (id) => {
 
         const fileContent = response.body;
 
-        const videoSave = await saveVideoLocally(folderPath, fileName, fileContent, fileSize);
+        const videoSave = await saveFileLocally(folderPath, fileName, fileContent, fileSize);
 
         if (!videoSave.ok) {
 
