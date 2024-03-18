@@ -49,6 +49,61 @@ const getVideo = async (id, fields = '') => {
 
 }; //!GETVIDEO-END
 
+const editVideo = async (id, data = {}, fields = '') => {
+
+    try {
+
+        const query = new URLSearchParams({ fields });
+        
+        const url = `${VIMEO_API_BASE_URL}/videos/${id}?${query}`;
+
+        const options = {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+            headers: {
+                ...AUTHORIZATION,
+                'Content-Type': 'application/json',
+                ...ACCEPT
+            }
+        };
+
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+
+            /**
+             * Represents the error message returned by the Vimeo API.
+             * @type {string}
+             */
+            const { error } = await response.json();
+
+            throw new Error('Failed to edit the video.', {
+                cause: { statusCode: response.status, error, video: id }
+            });
+
+        }
+
+        const cosa = await response.json();
+
+        return { ok: true, data: cosa };
+
+    } catch (error) {
+        
+        console.error(`\n${error.message}`);
+
+        const statusCode = error.cause?.statusCode ?? 500;
+
+        return {
+            ok: false,
+            statusCode,
+            message: error.message,
+            ...error.cause
+        };
+
+    }
+
+}; //!EDITVIDEO-END
+
 // VIDEOS - TEXT TRACKS SERVICES
 const getAllTextTracks = async (id, fields) => {
 
@@ -101,4 +156,8 @@ const getAllTextTracks = async (id, fields) => {
 
 }; //!GETALLTEXTTRACKS-END
 
-module.exports = { getAllTextTracks, getVideo };
+module.exports = {
+    editVideo,
+    getAllTextTracks,
+    getVideo
+};
