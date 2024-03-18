@@ -1,10 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { pipeline } = require('stream');
-const { promisify } = require('util');
-
-// Convert the `pipeline` to a promisified version.
-const asyncPipeline = promisify(pipeline);
+const { pipeline } = require('stream/promises');
 
 const saveFileLocally = async (folderPath, fileName, readerStream, totalSize = null) => {
 
@@ -16,7 +12,7 @@ const saveFileLocally = async (folderPath, fileName, readerStream, totalSize = n
         const filePath = path.join(folderPath, fileName);
 
         // Create a local writing stream.
-        const writeStream = fs.createWriteStream(filePath);
+        const writerStream = fs.createWriteStream(filePath);
 
         if (totalSize) {
 
@@ -24,7 +20,7 @@ const saveFileLocally = async (folderPath, fileName, readerStream, totalSize = n
 
         };
 
-        await asyncPipeline(readerStream, writeStream);
+        await pipeline(readerStream, writerStream);
 
         return {
             ok: true,
