@@ -256,8 +256,6 @@ const uploadVideoFile = async (url, binaryData, offset = 0) => {
 
     } catch (error) {
 
-        console.error(`\n${error.message}`);
-
         const statusCode = error.cause?.statusCode ?? 500;
 
         return {

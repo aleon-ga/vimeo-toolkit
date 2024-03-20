@@ -1,6 +1,6 @@
 const fs = require('fs');
-const { createVideoPlaceholder, uploadVideoFile } = require('@services').videosServices;
 const { DEFAULT_EMBED_DOMAINS_LIST, DEFAULT_VIDEO_PRIVACY_SETTINGS } = require('@constants');
+const { createVideoPlaceholder, uploadVideoFile } = require('@services').videosServices;
 
 const uploadVideo = async (video, folder, approach) => {
 
@@ -35,63 +35,48 @@ const uploadVideo = async (video, folder, approach) => {
         //TODO: Step 2 - Upload the video file.
         const { upload: { upload_link } } = videoPlaceholder.data;
 
-        console.log('\n', upload_link);
+        console.log('\nThe upload link is:', upload_link);
 
         /**
-         * Size of the block for file upload in bytes.
+         * Max size of the block for file upload in bytes.
          * @type {number}
          * @constant
          * @default
-         * @description The block size is defined in megabytes by multiplying the desired amount in megabytes by 1024 twice.
-         *              This provides the size in bytes.
+         * @description The block size is defined in megabytes by multiplying the desired amount in megabytes by 1024 twice. This provides the size in bytes.
          */
-        const chunkMaxSize = 50 * 1024 * 1024; // => 128 MB
-
-        console.log('CHUNK MAX SIZE:', chunkMaxSize);
+        const chunkMaxSize = 1 * 1024 * 1024; // => 128 MB
 
         const fileSize = fs.statSync(file.path)?.size;
-
-        console.log('FILE SIZE:', fileSize);
 
         let offset = 0;
 
         while (offset < fileSize) {
 
-            console.log(offset);
-
-            const fileDataBuffer = await readFileChunk(file.path, fileSize, chunkMaxSize, offset);
+            const fileDataBuffer = await readFileChunk(file.path, chunkMaxSize, offset);
 
             const videoUpload = await uploadVideoFile(upload_link, fileDataBuffer, offset);
 
             if (!videoUpload.ok) {
 
-                //TODO: Handle error
+                const { ok, ...error } = videoUpload;
 
-                console.log(videoUpload);
-
-                break;
+                throw error; // `break` the loop.
 
             }
 
             const { uploadOffset } = videoUpload.data;
 
-            console.log(uploadOffset)
-
-            if (uploadOffset === fileSize) console.log('Vimeo received the entire file.');
-
-            if (uploadOffset < fileSize) console.log('Vimeo did not receive the entire file.');
+            if (uploadOffset === fileSize) console.log('\nVimeo received the entire file.');
 
             offset += fileDataBuffer.byteLength;
 
         }
 
-        console.log('Terminé');
+        return { ok: true };
 
     } catch (error) {
 
         console.error(`\n${error.message}`);
-
-        console.error(error);
 
         const statusCode = error.statusCode ?? error.cause?.statusCode ?? 500;
 
@@ -106,44 +91,20 @@ const uploadVideo = async (video, folder, approach) => {
 
 }; //!UPLOADVIDEO-END
 
-const readFileChunk = async (filePath, fileSize, chunkMaxSize, offset = 0) => {
+const readFileChunk = async (filePath, chunkMaxSize, offset = 0) => {
+
+    const chunks = [];
 
     return new Promise((resolve, reject) => {
 
-        const chunks = [];
-        /**
-         * Variable to track the progress of the download.
-         * @type {number}
-         */
-        let bytesReceived = 0;
-        /**
-         * Represents the last progress value printed to the console.
-         * @type {number}
-         */
-        let lastProgress = 0;
-
-        const readerStream = fs.createReadStream(filePath, {
+        const options = {
             start: offset,
             end: (offset + chunkMaxSize - 1) // This ensures that we don't exceed the specified chunk size.
-        });
+        };
 
-        readerStream.on('data', (chunk) => {
+        const readerStream = fs.createReadStream(filePath, options);
 
-            bytesReceived += chunk.length;
-
-            const progress = Math.floor((bytesReceived / fileSize) * 100);
-
-            if (progress - lastProgress >= 10) {
-
-                console.log(`Upload progress: ${progress} %`);
-
-                lastProgress = progress;
-
-            };
-
-            chunks.push(chunk);
-
-        });
+        readerStream.on('data', (chunk) => chunks.push(chunk));
 
         readerStream.on('end', () => resolve(Buffer.concat(chunks)));
 
