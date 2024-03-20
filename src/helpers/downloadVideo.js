@@ -5,7 +5,7 @@ const { saveFileLocally } = require('@utils');
 
 const downloadVideo = async (id) => {
 
-    const FIELDS = 'download.link,download.quality,download.rendition,download.size,download.type';
+    const FIELDS = 'description,download.link,download.quality,download.rendition,download.size,download.type,name';
 
     try {
 
@@ -21,7 +21,7 @@ const downloadVideo = async (id) => {
         };
 
         //TODO: Step 2 - Extract the information from the video with the best quality.
-        const videoFilesList = video.data?.download;
+        const { name, description, download: videoFilesList } = video.data;
 
         /**
          * The function filters and sorts a list of video files to select the highest-quality downloadable video,
@@ -34,6 +34,7 @@ const downloadVideo = async (id) => {
          * @prop {string} type - The type of video file.
          */
         const downloadableVideo = videoFilesList.filter(({ type }) => type.includes('mp4')).sort((a, b) => b.size - a.size)[0];
+        // const downloadableVideo = videoFilesList.filter(({ type }) => type.includes('mp4')).sort((a, b) => a.size - b.size)[0]; //! RAFA'S TASK
 
         if (!downloadableVideo) {
 
@@ -76,7 +77,11 @@ const downloadVideo = async (id) => {
 
         return {
             ok: true,
-            data: videoSave.data
+            data: {
+                name, // Video title.
+                description, // Video description.
+                file: { ...videoSave.data } // Video file name and path.
+            }
         };
 
     } catch (error) {

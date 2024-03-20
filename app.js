@@ -26,6 +26,6 @@ const port = process.env.PORT || 3000;
 // Start server
 const server = app.listen(port, () => console.log(`App listening on port ${port}`));
 
-process.on('warning', e => console.warn(e.stack));
+process.on('warning', (error) => console.warn(error.stack));
 
 module.exports = { app, server };
