@@ -113,6 +113,8 @@ const reuploadVideos = async (req, res) => {
 
         for (const id of videos) {
 
+            console.log(`\nIterating over video ${id}...`);
+
             const videoDownload = await downloadVideo(id);
 
             if (!videoDownload.ok) {
@@ -122,10 +124,12 @@ const reuploadVideos = async (req, res) => {
                 continue;
 
             };
+
+            console.log('\nVideo downloaded successfully.');
  
             const downloadedVideo = videoDownload.data;
 
-            const fileSize = fs.statSync(downloadedVideo.file.path).size;
+            const fileSize = fs.statSync(downloadedVideo.file.path)?.size;
 
             const destinationFolder = '/me/projects/19825089';
 
