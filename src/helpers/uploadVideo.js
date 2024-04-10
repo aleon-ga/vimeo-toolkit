@@ -11,10 +11,11 @@ const uploadVideo = async (video, folder, approach) => {
         //TODO: Step 1 - Create the video placeholder.
         const videoMetadata = {
             description,
-            // embed: { logos: { vimeo: false } }, //?
+            embed: { logos: { vimeo: false } },
             embed_domains: DEFAULT_EMBED_DOMAINS_LIST,
             folder_uri: folder,
             hide_from_vimeo: true, // According to the documentation, the `view` privacy field is deprecated.
+            // locale,
             name,
             privacy: { ...DEFAULT_VIDEO_PRIVACY_SETTINGS },
             upload: approach
@@ -44,7 +45,7 @@ const uploadVideo = async (video, folder, approach) => {
          * @default
          * @description The block size is defined in megabytes by multiplying the desired amount in megabytes by 1024 twice. This provides the size in bytes.
          */
-        const chunkMaxSize = 1 * 1024 * 1024; // => 128 MB
+        const chunkMaxSize = 128 * 1024 * 1024; // => 128 MB
 
         const fileSize = fs.statSync(file.path)?.size;
 

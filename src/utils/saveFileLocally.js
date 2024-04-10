@@ -70,7 +70,7 @@ const trackDownloadProgress = (readerStream, totalSize) => {
 
         if (progress - lastProgress >= 10) {
 
-            console.log(`Download progress: ${progress} %`);
+            console.log(`\nDownload progress: ${progress} %`);
 
             lastProgress = progress;
 

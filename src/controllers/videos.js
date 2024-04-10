@@ -155,7 +155,7 @@ const reuploadVideos = async (req, res) => {
         };
 
         res.status(200).json({
-            message: 'Reupload process completed.',
+            message: `Reupload process completed for ${uploads.length} out of ${videos.length} videos.`,
             data: { uploads, logs }
         });
 

@@ -3,6 +3,53 @@ const { ACCEPT, AUTHORIZATION, MAX_PAGE_RESULTS, VIMEO_API_BASE_URL } = require(
 // const { extractShowcaseId } = require('@helpers');
 const { mergeArrays } = require('@utils');
 
+const createFolder = async (name, uri = '', fields = '') => {
+
+    try {
+
+        const queryParams = new URLSearchParams({ fields });
+
+        const url = `${VIMEO_API_BASE_URL}/me/folders?${queryParams}`;
+
+        const body = JSON.stringify({ name, parent_folder_uri: uri });
+
+        const options = {
+            method: 'POST',
+            body,
+            headers: {
+                ...AUTHORIZATION,
+                'Content-Type': 'application/json',
+                ...ACCEPT
+            }
+        };
+
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+
+            const message = 'Failed to create the folder.';
+
+            await handleVimeoErrorResponse(response, message);
+
+        }
+
+        const data = await response.json();
+
+        return {
+            ok: true,
+            data
+        };
+
+    } catch (error) {
+
+        return {
+            ok: false,
+            error
+        }
+
+    }
+
+}; //!CREATEFOLDER-END
 /**
  * Retrieves all the videos that belong to the specified folder.
  * @param {string} id - Folder ID.
@@ -87,6 +134,18 @@ const getAllVideosInFolder = async (id, fields = '') => {
 
     };
 
-}; //!GETALLVIDEOSINFOLDER
+}; //!GETALLVIDEOSINFOLDER-END
 
-module.exports = { getAllVideosInFolder };
+const handleVimeoErrorResponse = async (response, message) => {
+
+    /**
+     * Represents the error message returned by the Vimeo API.
+     * @type {string}
+     */
+    const { error } = await response.json();
+
+    throw new Error(message, { cause: { statusCode: response.status, error } })
+
+}; //!HANDLEVIMEOERRORRESPONSE-END
+
+module.exports = { createFolder, getAllVideosInFolder };
